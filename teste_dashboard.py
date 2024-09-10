@@ -1,31 +1,31 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Aug 27 19:53:36 2024
+Created on Tue Sep 10 10:05:56 2024
 
 @author: luise
 """
 
+from dash import Dash, dcc, html, dash_table, Input, Output, State, callback
+
+import base64
+#import datetime
+import io
+
 import pandas as pd
-import dash
-from dash.dependencies import Input, Output, State
-#from dash_table import DataTable
-from dash import dash_table
-#import dash_core_components as dcc
-from dash import dcc
-#import dash_html_components as html
-from dash import html
-import dash_bootstrap_components as dbc
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from plotly.colors import qualitative
-import pandas as pd
-#from dash import Dash, html
+
+#import plotly.graph_objects as go
+#from plotly.subplots import make_subplots
+#from plotly.colors import qualitative
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-#app = Dash(__name__, external_stylesheets=external_stylesheets)
-app = dash.Dash(external_stylesheets=external_stylesheets)
+app = Dash(__name__, external_stylesheets=external_stylesheets)
 
+
+
+
+
+# Parte referente ao título da página
 titulo = html.Div([
     html.H2('Interative Dashboard for Extreme Events Auditing', 
             style={'textAlign': 'center'}),
@@ -33,13 +33,18 @@ titulo = html.Div([
             style={'textAlign': 'center'})
     ])
 
+
+
+
+
+# Parte referente a importação do arquivo
 selector = html.Div([
     dcc.Upload(
-        id='upload-image',
+        id='upload-data',
         children=html.Div([
             'Drag and Drop or ',
             html.A('Select Files')
-        ]),
+        ], style={'textAlign': 'center'}),
         style={
             'width': '30%',
             'height': '60px',
@@ -52,34 +57,61 @@ selector = html.Div([
             'margin-left':'35%'
         },
         # Allow multiple files to be uploaded
-        multiple=True)
-        ])
-
-
-
-
-
-
-
-
+        multiple=False
+    ),
+    html.Div(id='output-data-upload', style={'textAlign': 'center'}),
+])
 
 
 app.layout = html.Div([titulo, selector])
 
 
-app.callback( Input('upload-data', 'contents'),
+def parse_contents(contents, filename, date):
+    content_type, content_string = contents.split(',')
+    
+
+    decoded = base64.b64decode(content_string)
+    try:
+        if 'csv' in filename:
+            # Assume that the user uploaded a CSV file
+            df = pd.read_csv(
+                io.StringIO(decoded.decode('utf-8')))
+        elif 'xls' in filename:
+            # Assume that the user uploaded an excel file
+            df = pd.read_excel(io.BytesIO(decoded))
+        else:
+            return html.Div([
+                'Arquivo inválido, selecione um arquivo .csv ou .xls'
+            ])
+    except Exception as e:
+        print(e)
+        return html.Div([
+            'There was an error processing this file.'
+        ])
+    else:
+        return html.Div([
+            html.H5(filename),
+            
+            # O dataframe com os dados é df, use ele para acessar a tabela.
+            dash_table.DataTable(
+                df.to_dict('records'),
+                [{'name': i, 'id': i} for i in df.columns]
+            ),
+        ])
+
+@callback(Output('output-data-upload', 'children'),
+              Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
 
 
-
+def update_output(list_of_contents, list_of_names, list_of_dates):
+    print(list_of_names)
+    
+    if list_of_contents is not None:
+        children = [
+            parse_contents(list_of_contents, list_of_names, list_of_dates)]
+        return children
 
 if __name__ == '__main__':
-    
-    #layout = html.Div([title, table_tabs])
-
-    
-    
-    
-    
     app.run(debug=True)
