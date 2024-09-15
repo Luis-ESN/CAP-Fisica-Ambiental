@@ -22,7 +22,7 @@ import plotly.graph_objects as go
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = Dash(__name__, external_stylesheets=external_stylesheets)
+app = Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
 
 
 
@@ -109,8 +109,9 @@ def parse_contents(contents, filename, date):
         ])
     else:
         return html.Div([
-            html.H5(filename),
-            
+            html.H3("Análise da Série Temporal de Precipitação", style={'top-margin':'1cm'}),
+            html.Div(id='resultado_mk_chuva', style={'padding': '20px', 'backgroundColor': '#f0f0f0', 'top-margin':'1cm'}),
+            dcc.Graph(id='grafico_precipitacao'),
             # O dataframe com os dados é df, use ele para acessar a tabela.
             #'''dash_table.DataTable(
              #   df.to_dict('records'),
@@ -130,114 +131,16 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         children = [
             parse_contents(list_of_contents, list_of_names, list_of_dates)]
         return children
-    
-####################################################
-
-# Trecho para questionario 1-------------------------------------------------------
-quest_um = html.Div([
-    html.H3("Questionário sobre Eventos",style={'margin-top':'1cm'}),
-    
-    # Pergunta A
-    html.Label("Possui algum rio no local do evento?", style={'margin-top':'1cm'}),
-    dcc.Dropdown(
-        id='pergunta_a',
-        options=[
-            {'label': 'Sim', 'value': 'Sim'},
-            {'label': 'Não', 'value': 'Não'}
-        ],
-        value=None,
-        placeholder='Selecione uma resposta',
-        style={'width':'7cm'}
-    ),
-    
-    # Pergunta B
-    html.Label("Em caso positivo, houve um transbordamento do rio?", style={'margin-top':'1cm'}),
-    dcc.Dropdown(
-        id='pergunta_b',
-        options=[
-            {'label': 'Sim', 'value': 'Sim'},
-            {'label': 'Não', 'value': 'Não'}
-        ],
-        value=None,
-        placeholder='Selecione uma resposta',
-        style={'width':'7cm'}
-    ),
-    
-    # Pergunta C
-    html.Label("Houve escoamento de água superficial com alta energia de transporte?", style={'margin-top':'1cm'}),
-    dcc.Dropdown(
-        id='pergunta_c',
-        options=[
-            {'label': 'Sim', 'value': 'Sim'},
-            {'label': 'Não', 'value': 'Não'}
-        ],
-        value=None,
-        placeholder='Selecione uma resposta',
-        style={'width':'7cm'}
-    ),
-    
-    html.Button('Enviar', id='Enviar', n_clicks=0, style={'margin-top':'1cm'}),
-    html.Div(id='resposta_quest_um') #espaco onde sera exibido o retorno
-])
-
-@callback(
-    Output('resposta_quest_um', 'children'),
-    Input('Enviar', 'n_clicks'),  
-    State('pergunta_a', 'value'),
-    State('pergunta_b', 'value'),
-    State('pergunta_c', 'value')
-)
-
-def class_evento(n_clicks, resposta_a, resposta_b, resposta_c):
-    if n_clicks > 0: 
-        if resposta_a == 'Não' and resposta_b == 'Não' and resposta_c == 'Não':
-            evento = 'ALAGAMENTO'
-            descricao = 'É um acúmulo momentâneo de águas em determinados locais por deficiência no sistema de drenagem.'
-        elif resposta_a == 'Não' and resposta_b == 'Não' and resposta_c == 'Sim':
-            evento = 'ENXURRADA'
-            descricao = 'É um escoamento superficial concentrado e com alta energia de transporte, que pode ou não estar associado aos rios. As enxurradas são capazes de carregar pessoas, carros, caçambas e outros objetos. Geralmente ocorrem em áreas com deficiência no sistema de drenagem, em locais com maior declividade, entre outras.'
-        elif resposta_a == 'Sim' and resposta_b == 'Não' and resposta_c == 'Não':
-            evento = 'ENCHENTE'
-            descricao = 'É definida pela elevação do nível d’água no canal de drenagem devido ao aumento da vazão, atingindo a cota máxima do canal de drenagem, porém, sem extravasar (sem o rio transbordar).'
-        elif resposta_a == 'Sim' and resposta_b == 'Não' and resposta_c == 'Sim':
-            evento = 'ENXURRADA'
-            descricao = 'É um escoamento superficial concentrado e com alta energia de transporte, que pode ou não estar associado aos rios. As enxurradas são capazes de carregar pessoas, carros, caçambas e outros objetos. Geralmente ocorrem em áreas com deficiência no sistema de drenagem, em locais com maior declividade, entre outras.'
-        elif resposta_a == 'Sim' and resposta_b == 'Sim' and resposta_c == 'Não':
-            evento = 'INUNDAÇÃO'
-            descricao = 'Representa o transbordamento de um curso d’água, atingindo a planície de inundação ou área de várzea.'
-        elif resposta_a == 'Sim' and resposta_b == 'Sim' and resposta_c == 'Sim':
-            evento = 'INUNDAÇÃO COM ENXURRADA'
-            descricao = 'Transbordamento de um curso d’água, atingindo a planície de inundação ou área de várzea e com escoamento superficial concentrado e com alta energia de transporte.'
-        else:
-            evento = 'INVÁLIDO'
-            descricao = 'Por favor, verifique suas respostas.'
-        
-        return html.Div([
-            html.H3(f"Evento Identificado: {evento}"),
-            html.P(descricao),
-            html.P('Fonte: Glossário Transdiciplinar (Projeto COPE - CEMADEN)')
-        ], style={'backgroundColor': '#f0f0f0', 'padding': '20px', 'border-radius': '5px', 'margin-top': '1cm'})
-    return ""
 
 ################
 dados_chuva = None
 resultado_mk_chuva = None
 
-analise_chuva = html.Div([
-    html.H3("Análise da Série Temporal de Precipitação", style={'top-margin':'1cm'}),
-    html.Div(id='resultado_mk_chuva', style={'padding': '20px', 'backgroundColor': '#f0f0f0', 'top-margin':'1cm'}),
-    dcc.Graph(id='grafico_precipitacao'),
-    dcc.Interval(
-            id='interval-component',
-            interval=1 * 1000,
-            n_intervals=0
-    ),
-    ])
 
 @callback(
     [Output('resultado_mk_chuva', 'children'),
      Output('grafico_precipitacao', 'figure'),
-     Input('grafico_precipitacao', 'id')]
+     Input('grafico_precipitacao', 'id')],
 )
 
 def tendencia_chuva(_):
@@ -298,7 +201,98 @@ def tendencia_chuva(_):
             )
         }
         return desc_tend_chuva, grafico_chuva
+    
+####################################################
 
-app.layout = html.Div([titulo, selector, quest_um, analise_chuva])#, analise_chuva, analise_rio])
+# Trecho para questionario 1-------------------------------------------------------
+quest_um = html.Div([
+    html.Div([
+    html.H3("Questionário sobre Eventos",style={'margin-top':'0.5cm'}),
+    
+    # Pergunta A
+    html.Label("Possui algum rio no local do evento?", style={'margin-top':'0.5cm'}),
+    dcc.Dropdown(
+        id='pergunta_a',
+        options=[
+            {'label': 'Sim', 'value': 'Sim'},
+            {'label': 'Não', 'value': 'Não'}
+        ],
+        value=None,
+        placeholder='Selecione uma resposta',
+        style={'width':'7cm'}
+    ),
+    
+    # Pergunta B
+    html.Label("Em caso positivo, houve um transbordamento do rio?", style={'margin-top':'0.5cm'}),
+    dcc.Dropdown(
+        id='pergunta_b',
+        options=[
+            {'label': 'Sim', 'value': 'Sim'},
+            {'label': 'Não', 'value': 'Não'}
+        ],
+        value=None,
+        placeholder='Selecione uma resposta',
+        style={'width':'7cm'}
+    ),
+    
+    # Pergunta C
+    html.Label("Houve escoamento de água superficial com alta energia de transporte?", style={'margin-top':'0.5cm'}),
+    dcc.Dropdown(
+        id='pergunta_c',
+        options=[
+            {'label': 'Sim', 'value': 'Sim'},
+            {'label': 'Não', 'value': 'Não'}
+        ],
+        value=None,
+        placeholder='Selecione uma resposta',
+        style={'width':'7cm'}
+    ),
+    
+    html.Button('Enviar', id='Enviar', n_clicks=0, style={'margin-top':'0.5cm'}),
+    ], style={'width': '45%', 'display': 'inline-block', 'margin-left':'5%'}),
+    html.Div(id='resposta_quest_um', 
+             style={'verticalAlign': 'top', 'width': '45%', 'display': 'inline-block', 'margin-right':'5%', 'textAlign': 'center'}) #espaco onde sera exibido o retorno
+], style={'verticalAlign': 'top'})
+
+@callback(
+    Output('resposta_quest_um', 'children'),
+    Input('Enviar', 'n_clicks'),  
+    State('pergunta_a', 'value'),
+    State('pergunta_b', 'value'),
+    State('pergunta_c', 'value')
+)
+
+def class_evento(n_clicks, resposta_a, resposta_b, resposta_c):
+    if n_clicks > 0: 
+        if resposta_a == 'Não' and resposta_b == 'Não' and resposta_c == 'Não':
+            evento = 'ALAGAMENTO'
+            descricao = 'É um acúmulo momentâneo de águas em determinados locais por deficiência no sistema de drenagem.'
+        elif resposta_a == 'Não' and resposta_b == 'Não' and resposta_c == 'Sim':
+            evento = 'ENXURRADA'
+            descricao = 'É um escoamento superficial concentrado e com alta energia de transporte, que pode ou não estar associado aos rios. As enxurradas são capazes de carregar pessoas, carros, caçambas e outros objetos. Geralmente ocorrem em áreas com deficiência no sistema de drenagem, em locais com maior declividade, entre outras.'
+        elif resposta_a == 'Sim' and resposta_b == 'Não' and resposta_c == 'Não':
+            evento = 'ENCHENTE'
+            descricao = 'É definida pela elevação do nível d’água no canal de drenagem devido ao aumento da vazão, atingindo a cota máxima do canal de drenagem, porém, sem extravasar (sem o rio transbordar).'
+        elif resposta_a == 'Sim' and resposta_b == 'Não' and resposta_c == 'Sim':
+            evento = 'ENXURRADA'
+            descricao = 'É um escoamento superficial concentrado e com alta energia de transporte, que pode ou não estar associado aos rios. As enxurradas são capazes de carregar pessoas, carros, caçambas e outros objetos. Geralmente ocorrem em áreas com deficiência no sistema de drenagem, em locais com maior declividade, entre outras.'
+        elif resposta_a == 'Sim' and resposta_b == 'Sim' and resposta_c == 'Não':
+            evento = 'INUNDAÇÃO'
+            descricao = 'Representa o transbordamento de um curso d’água, atingindo a planície de inundação ou área de várzea.'
+        elif resposta_a == 'Sim' and resposta_b == 'Sim' and resposta_c == 'Sim':
+            evento = 'INUNDAÇÃO COM ENXURRADA'
+            descricao = 'Transbordamento de um curso d’água, atingindo a planície de inundação ou área de várzea e com escoamento superficial concentrado e com alta energia de transporte.'
+        else:
+            evento = 'INVÁLIDO'
+            descricao = 'Por favor, verifique suas respostas.'
+        
+        return html.Div([
+            html.H3(f"Evento Identificado: {evento}"),
+            html.P(descricao),
+            html.P('Fonte: Glossário Transdiciplinar (Projeto COPE - CEMADEN)')
+        ], style={'verticalAlign': 'center', 'padding':'20px', 'backgroundColor': '#f0f0f0', 'border-radius': '5px', 'margin-top': '10%'})
+    return ""
+
+app.layout = html.Div([titulo, quest_um, selector])#, analise_chuva, analise_rio])
 if __name__ == '__main__':
     app.run(debug=True)
