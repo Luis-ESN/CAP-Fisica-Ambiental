@@ -15,6 +15,7 @@ import pandas as pd
 
 import pymannkendall as mk
 import plotly.graph_objects as go
+import numpy as np
 
 #import plotly.graph_objects as go
 #from plotly.subplots import make_subplots
@@ -109,9 +110,16 @@ def parse_contents(contents, filename, date):
         ])
     else:
         return html.Div([
+            html.Div([
             html.H3("Análise da Série Temporal de Precipitação", style={'top-margin':'1cm'}),
             html.Div(id='resultado_mk_chuva', style={'padding': '20px', 'backgroundColor': '#f0f0f0', 'top-margin':'1cm'}),
             dcc.Graph(id='grafico_precipitacao'),
+            ]),
+            html.Div([
+                html.H3("Análise de exogenia e endogenia", style={'top-margin':'1cm'}),
+                dcc.Graph(id='grafico_potenciometro'),
+                
+                ])
             # O dataframe com os dados é df, use ele para acessar a tabela.
             #'''dash_table.DataTable(
              #   df.to_dict('records'),
@@ -137,13 +145,77 @@ dados_chuva = None
 resultado_mk_chuva = None
 
 
+def nivel_endogenia(dados):
+  window_size = 1000
+  limiar_pico = 0.6 #Poncentagem
+  peso_exogena = 1
+  penalidade_endogena = 3
+  penalidade_exogena = 0.5
+  contador_exogena = 0
+  contador_endogena = 0
+  total_janelas = 0
+  
+  df = dados.copy()
+  media = df.iloc[:, -1].mean()
+  std = df.iloc[:, -1].std()
+  df.iloc[:, -1] = (df.iloc[:, -1] - media) / std
+  def tem_pico_discrepante(janela, limiar_pico):
+    media = np.mean(janela)
+    desvio_padrao = np.std(janela)
+    coef_variabilidade = desvio_padrao / media  #Coeficiente de variabilidade
+    return coef_variabilidade > limiar_pico
+
+
+  def tendencia_crescimento(janela, limiar_diferenca=0.3):
+      diferencas = [abs(janela[i + 1] - janela[i]) for i in range(len(janela) - 1)]
+      medida = np.std(diferencas)
+      return medida <= limiar_diferenca
+
+
+  for i in range(len(df) - window_size + 1):
+    # janela = df['amplitude'].iloc[i:i + window_size].values
+    janela = df.iloc[:, -1].iloc[i:i + window_size].values
+    total_janelas += 1
+
+    if tendencia_crescimento(janela):
+        if contador_exogena > 0:
+            contador_exogena -= peso_exogena + penalidade_exogena
+        if contador_endogena > 0:
+            contador_endogena += 1
+    else:
+        if tem_pico_discrepante(janela, limiar_pico):
+            contador_exogena += peso_exogena
+        else:
+            contador_endogena += penalidade_endogena
+
+    total_classificacoes = contador_exogena + contador_endogena
+    if total_classificacoes > 0:
+        prob_exogena = contador_exogena / total_classificacoes * 100
+        prob_endogena = contador_endogena / total_classificacoes * 100
+    else:
+        prob_exogena = 0
+        prob_endogena = 0
+  total_classificacoes_final = contador_exogena + contador_endogena
+  if total_classificacoes_final > 0:
+      prob_exogena_final = contador_exogena / total_classificacoes_final * 100
+      prob_endogena_final = contador_endogena / total_classificacoes_final * 100
+  else:
+      prob_exogena_final = 0
+      prob_endogena_final = 0
+
+  return prob_endogena_final
+
+
+
 @callback(
     [Output('resultado_mk_chuva', 'children'),
      Output('grafico_precipitacao', 'figure'),
-     Input('grafico_precipitacao', 'id')],
+     Output('grafico_potenciometro', 'figure'),
+     Input('grafico_precipitacao', 'id'),
+     Input('grafico_potenciometro', 'id')],
 )
 
-def tendencia_chuva(_):
+def tendencia_chuva(_, __):
     # Análise do resultado do teste de Mann-Kendall
     global resultado_mk_chuva
     
@@ -169,8 +241,27 @@ def tendencia_chuva(_):
                 hovermode='x'
             )
         }
+        
         desc_tend_chuva = 'Selecione o arquivo com o evento'
-        return desc_tend_chuva, grafico_chuva
+        
+        grafico_potenciometro = {
+            'data': [
+                go.Indicator(
+                    mode = "gauge+number",
+                    value = None,
+                        domain = {'x': [0, 1], 'y': [0, 1]},
+                      gauge = {
+                      'axis': {'range': [0, 100]},
+                      }
+                )
+            ],
+            'layout': go.Layout(
+                title = {'text': "Nível de Endogenia"},
+            )
+        }
+        
+
+        return desc_tend_chuva, grafico_chuva, grafico_potenciometro
     else:
         if resultado_mk_chuva.trend == 'no trend':
             desc_tend_chuva = 'De acordo com o teste de Mann-Kendall, não foi detectada tendência de mudança nas chuvas.'
@@ -200,7 +291,23 @@ def tendencia_chuva(_):
                 hovermode='x'
             )
         }
-        return desc_tend_chuva, grafico_chuva
+        
+        grafico_potenciometro = {
+            'data': [
+                go.Indicator(
+                    mode = "gauge+number",
+                    value = nivel_endogenia(dados_chuva),
+                        domain = {'x': [0, 1], 'y': [0, 1]},
+                      gauge = {
+                      'axis': {'range': [0, 100]},
+                      }
+                )
+            ],
+            'layout': go.Layout(
+                title = {'text': "Nível de Endogenia"},
+            )
+        }
+        return desc_tend_chuva, grafico_chuva, grafico_potenciometro
     
 ####################################################
 
