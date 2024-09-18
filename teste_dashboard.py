@@ -6,9 +6,10 @@ Created on Tue Sep 10 10:05:56 2024
 """
 
 from dash import Dash, dcc, html, dash_table, Input, Output, State, callback
+import dash_mantine_components as dmc
 
 import base64
-#import datetime
+from datetime import datetime, date
 import io
 
 import pandas as pd
@@ -21,7 +22,7 @@ import numpy as np
 #from plotly.subplots import make_subplots
 #from plotly.colors import qualitative
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', dmc.styles.DATES]
 
 app = Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
 
@@ -31,7 +32,7 @@ app = Dash(__name__, external_stylesheets=external_stylesheets, suppress_callbac
 
 # Parte referente ao título da página
 titulo = html.Div([
-    html.H2('Interative Dashboard for Extreme Events Auditing', 
+    html.H2('Interactive Dashboard for Extreme Events Auditing', 
             style={'textAlign': 'center'}),
     html.H2('IDEEA',
             style={'textAlign': 'center'})
@@ -147,6 +148,10 @@ resultado_mk_chuva = None
 
 def nivel_endogenia(dados):
   window_size = 1000
+  if len(dados) < 1000:
+      window_size= 100
+  if len(dados) < 100:
+      window_size = 10
   limiar_pico = 0.6 #Poncentagem
   peso_exogena = 1
   penalidade_endogena = 3
@@ -400,6 +405,184 @@ def class_evento(n_clicks, resposta_a, resposta_b, resposta_c):
         ], style={'verticalAlign': 'center', 'padding':'20px', 'backgroundColor': '#f0f0f0', 'border-radius': '5px', 'margin-top': '10%'})
     return ""
 
-app.layout = html.Div([titulo, quest_um, selector])#, analise_chuva, analise_rio])
+
+
+
+####################################################
+
+# Trecho para questionario 1-------------------------------------------------------
+quest_dois = html.Div([
+    html.Div([
+    html.H3("Questionário sobre Eventos",style={'margin-top':'0.5cm'}),
+    
+    # Pergunta D
+    html.Label("Qual a data do evento?", style={'margin-top':'0.5cm'}),
+    dcc.DatePickerSingle(
+        id='pergunta_d',
+        #min_date_allowed=date(1995, 8, 5),
+        max_date_allowed=date.today(),
+        initial_visible_month=date.today(),
+        date=date.today()
+    ),
+    
+    # Pergunta E
+    html.Label("Qual o local do evento?", style={'margin-top':'0.5cm'}),
+    dcc.Input(
+            id="pergunta_e",
+            type="text",
+            placeholder="Ex: Jacareí/São Paulo/Brasil",
+            value=''
+        ),
+    
+    # Pergunta F
+    html.Label("O evento ocorreu em área urbana ou rural??", style={'margin-top':'0.5cm'}),
+    dcc.Dropdown(
+        id='pergunta_f',
+        options=[
+            {'label': 'Rural', 'value': 'Rural'},
+            {'label': 'Urbana', 'value': 'Urbana'}
+        ],
+        value=None,
+        placeholder='Selecione uma resposta',
+        style={'width':'7cm'}
+    ),
+    
+    # Pergunta G
+    html.Label("Como poderia ser classificada a vulnerabilidade desta área?", style={'margin-top':'0.5cm'}),
+    dcc.Dropdown(
+        id='pergunta_g',
+        options=[
+            {'label': 'Nula', 'value': 'Nula'},
+            {'label': 'Baixa', 'value': 'Baixa'},
+            {'label': 'Intermediaria', 'value': 'Intermediaria'},
+            {'label': 'Alta', 'value': 'Alta'},
+            {'label': 'Devastadora', 'value': 'Devastadora'},
+        ],
+        value=None,
+        placeholder='Selecione uma resposta',
+        style={'width':'7cm'}
+    ),
+    
+    
+    # Pergunta H
+    html.Label("Existe alguma condição climática específica que merece ser destacada no local e data do evento?", style={'margin-top':'0.5cm'}),
+    dcc.Input(
+            id="pergunta_h",
+            type="text",
+            placeholder="Ex: Época de secas, de chuvas ou outras",
+            value=''
+        ),
+    
+    # Pergunta I
+    html.Label("Existe algum modo de variabilidade climático atuante no local e data do evento?", style={'margin-top':'0.5cm'}),
+    dcc.Input(
+            id="pergunta_i",
+            type="text",
+            placeholder="Ex: El Niño, El Niña ou outras",
+            value=''
+        ),
+    
+    # Pergunta J
+    html.Label("Existem variáveis medidas antes, durante e após o evento que podem ajudar a descrevê-lo como um fenômeno de causa(s) e efeito(s)?", style={'margin-top':'0.5cm'}),
+    dcc.Input(
+            id="pergunta_j",
+            type="text",
+            placeholder="Ex: Precepitação, vento e ou outras",
+            value=''
+        ),
+    
+    # Pergunta K
+    html.Label("É possível quantificar/dimensionar o impacto do evento no meio ambiente?", style={'margin-top':'0.5cm'}),
+    dcc.Dropdown(
+        id='pergunta_k',
+        options=[
+            {'label': 'Sim', 'value': 'Sim'},
+            {'label': 'Não', 'value': 'Não'}
+        ],
+        value=None,
+        placeholder='Selecione uma resposta',
+        style={'width':'7cm'}
+    ),
+    
+    # Pergunta L
+    html.Label("É possível reverter e/ou mitigar os efeitos negativos ao meio ambiente?", style={'margin-top':'0.5cm'}),
+    dcc.Dropdown(
+        id='pergunta_l',
+        options=[
+            {'label': 'Sim', 'value': 'Sim'},
+            {'label': 'Não', 'value': 'Não'}
+        ],
+        value=None,
+        placeholder='Selecione uma resposta',
+        style={'width':'7cm'}
+    ),
+    
+    # Pergunta M
+    html.Label("É possível apontar responsáveis pelo evento em função de um estudo técnico-científico?", style={'margin-top':'0.5cm'}),
+    dcc.Input(
+            id="pergunta_m",
+            type="text",
+            placeholder="Ex: Não ou, se sim, quais?",
+            value=''
+        ),
+    
+    html.P(),
+    html.Button('Enviar', id='Enviar2', n_clicks=0, style={'margin-top':'0.5cm'}),
+    ], style={'width': '45%', 'display': 'inline-block', 'margin-left':'5%'}),
+    html.Div(id='resposta_quest_dois', 
+             style={'verticalAlign': 'top', 'width': '45%', 'display': 'inline-block', 'margin-right':'5%', 'textAlign': 'center'}) #espaco onde sera exibido o retorno
+], style={'verticalAlign': 'top'})
+
+
+@callback(
+    Output('resposta_quest_dois', 'children'),
+    Input('Enviar2', 'n_clicks'),  
+    State('pergunta_d', 'date'),
+    State('pergunta_e', 'value'),
+    State('pergunta_f', 'value'),
+    State('pergunta_g', 'value'),
+    State('pergunta_h', 'value'),
+    State('pergunta_i', 'value'),
+    State('pergunta_j', 'value'),
+    State('pergunta_k', 'value'),
+    State('pergunta_l', 'value'),
+    State('pergunta_m', 'value')
+)
+
+
+def survey(n_clicks, resposta_d, resposta_e, resposta_f, resposta_g, resposta_h, resposta_i, resposta_j, resposta_k, resposta_l, resposta_m):
+    '''if n_clicks > 0: 
+        if resposta_a == 'Não' and resposta_b == 'Não' and resposta_c == 'Não':
+            evento = 'ALAGAMENTO'
+            descricao = 'É um acúmulo momentâneo de águas em determinados locais por deficiência no sistema de drenagem.'
+        elif resposta_a == 'Não' and resposta_b == 'Não' and resposta_c == 'Sim':
+            evento = 'ENXURRADA'
+            descricao = 'É um escoamento superficial concentrado e com alta energia de transporte, que pode ou não estar associado aos rios. As enxurradas são capazes de carregar pessoas, carros, caçambas e outros objetos. Geralmente ocorrem em áreas com deficiência no sistema de drenagem, em locais com maior declividade, entre outras.'
+        elif resposta_a == 'Sim' and resposta_b == 'Não' and resposta_c == 'Não':
+            evento = 'ENCHENTE'
+            descricao = 'É definida pela elevação do nível d’água no canal de drenagem devido ao aumento da vazão, atingindo a cota máxima do canal de drenagem, porém, sem extravasar (sem o rio transbordar).'
+        elif resposta_a == 'Sim' and resposta_b == 'Não' and resposta_c == 'Sim':
+            evento = 'ENXURRADA'
+            descricao = 'É um escoamento superficial concentrado e com alta energia de transporte, que pode ou não estar associado aos rios. As enxurradas são capazes de carregar pessoas, carros, caçambas e outros objetos. Geralmente ocorrem em áreas com deficiência no sistema de drenagem, em locais com maior declividade, entre outras.'
+        elif resposta_a == 'Sim' and resposta_b == 'Sim' and resposta_c == 'Não':
+            evento = 'INUNDAÇÃO'
+            descricao = 'Representa o transbordamento de um curso d’água, atingindo a planície de inundação ou área de várzea.'
+        elif resposta_a == 'Sim' and resposta_b == 'Sim' and resposta_c == 'Sim':
+            evento = 'INUNDAÇÃO COM ENXURRADA'
+            descricao = 'Transbordamento de um curso d’água, atingindo a planície de inundação ou área de várzea e com escoamento superficial concentrado e com alta energia de transporte.'
+        else:
+            evento = 'INVÁLIDO'
+            descricao = 'Por favor, verifique suas respostas.
+            '''
+    if n_clicks > 0:
+        return html.Div([
+            #html.H3(f"Evento Identificado: {evento}"),
+            #html.P(descricao),
+            html.P('Fonte: Glossário Transdiciplinar (Projeto COPE - CEMADEN)')
+        ], style={'verticalAlign': 'center', 'padding':'20px', 'backgroundColor': '#f0f0f0', 'border-radius': '5px', 'margin-top': '10%'})
+    return ""
+
+
+app.layout = html.Div([titulo, quest_um, selector, quest_dois])#, analise_chuva, analise_rio])
 if __name__ == '__main__':
     app.run(debug=True)
