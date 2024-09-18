@@ -413,7 +413,9 @@ def class_evento(n_clicks, resposta_a, resposta_b, resposta_c):
 # Trecho para questionario 1-------------------------------------------------------
 quest_dois = html.Div([
     html.Div([
-    html.H3("Questionário sobre Eventos",style={'margin-top':'0.5cm'}),
+        html.H3("Questionário sobre Eventos",style={'margin-top':'0.5cm', 'textAlign': 'center'}),
+        ]),
+    html.Div([
     
     # Pergunta D
     html.Label("Qual a data do evento?", style={'margin-top':'0.5cm'}),
@@ -422,20 +424,14 @@ quest_dois = html.Div([
         #min_date_allowed=date(1995, 8, 5),
         max_date_allowed=date.today(),
         initial_visible_month=date.today(),
-        date=date.today()
+        date=date.today()        
     ),
     
-    # Pergunta E
-    html.Label("Qual o local do evento?", style={'margin-top':'0.5cm'}),
-    dcc.Input(
-            id="pergunta_e",
-            type="text",
-            placeholder="Ex: Jacareí/São Paulo/Brasil",
-            value=''
-        ),
+    
     
     # Pergunta F
     html.Label("O evento ocorreu em área urbana ou rural??", style={'margin-top':'0.5cm'}),
+    html.Center(
     dcc.Dropdown(
         id='pergunta_f',
         options=[
@@ -444,25 +440,8 @@ quest_dois = html.Div([
         ],
         value=None,
         placeholder='Selecione uma resposta',
-        style={'width':'7cm'}
-    ),
-    
-    # Pergunta G
-    html.Label("Como poderia ser classificada a vulnerabilidade desta área?", style={'margin-top':'0.5cm'}),
-    dcc.Dropdown(
-        id='pergunta_g',
-        options=[
-            {'label': 'Nula', 'value': 'Nula'},
-            {'label': 'Baixa', 'value': 'Baixa'},
-            {'label': 'Intermediaria', 'value': 'Intermediaria'},
-            {'label': 'Alta', 'value': 'Alta'},
-            {'label': 'Devastadora', 'value': 'Devastadora'},
-        ],
-        value=None,
-        placeholder='Selecione uma resposta',
-        style={'width':'7cm'}
-    ),
-    
+        style={'width':'7cm', 'textAlign': 'left'}
+    )),
     
     # Pergunta H
     html.Label("Existe alguma condição climática específica que merece ser destacada no local e data do evento?", style={'margin-top':'0.5cm'}),
@@ -473,39 +452,9 @@ quest_dois = html.Div([
             value=''
         ),
     
-    # Pergunta I
-    html.Label("Existe algum modo de variabilidade climático atuante no local e data do evento?", style={'margin-top':'0.5cm'}),
-    dcc.Input(
-            id="pergunta_i",
-            type="text",
-            placeholder="Ex: El Niño, El Niña ou outras",
-            value=''
-        ),
-    
-    # Pergunta J
-    html.Label("Existem variáveis medidas antes, durante e após o evento que podem ajudar a descrevê-lo como um fenômeno de causa(s) e efeito(s)?", style={'margin-top':'0.5cm'}),
-    dcc.Input(
-            id="pergunta_j",
-            type="text",
-            placeholder="Ex: Precepitação, vento e ou outras",
-            value=''
-        ),
-    
-    # Pergunta K
-    html.Label("É possível quantificar/dimensionar o impacto do evento no meio ambiente?", style={'margin-top':'0.5cm'}),
-    dcc.Dropdown(
-        id='pergunta_k',
-        options=[
-            {'label': 'Sim', 'value': 'Sim'},
-            {'label': 'Não', 'value': 'Não'}
-        ],
-        value=None,
-        placeholder='Selecione uma resposta',
-        style={'width':'7cm'}
-    ),
-    
     # Pergunta L
     html.Label("É possível reverter e/ou mitigar os efeitos negativos ao meio ambiente?", style={'margin-top':'0.5cm'}),
+    html.Center(
     dcc.Dropdown(
         id='pergunta_l',
         options=[
@@ -514,8 +463,8 @@ quest_dois = html.Div([
         ],
         value=None,
         placeholder='Selecione uma resposta',
-        style={'width':'7cm'}
-    ),
+        style={'width':'7cm', 'textAlign': 'left'}
+    )),
     
     # Pergunta M
     html.Label("É possível apontar responsáveis pelo evento em função de um estudo técnico-científico?", style={'margin-top':'0.5cm'}),
@@ -528,9 +477,76 @@ quest_dois = html.Div([
     
     html.P(),
     html.Button('Enviar', id='Enviar2', n_clicks=0, style={'margin-top':'0.5cm'}),
-    ], style={'width': '45%', 'display': 'inline-block', 'margin-left':'5%'}),
-    html.Div(id='resposta_quest_dois', 
-             style={'verticalAlign': 'top', 'width': '45%', 'display': 'inline-block', 'margin-right':'5%', 'textAlign': 'center'}) #espaco onde sera exibido o retorno
+    ], style={'width': '45%', 'display': 'inline-block', 'margin-left':'5%', 'textAlign': 'center'}),
+    html.Div([
+        
+        # Pergunta E
+        html.Label("Qual o local do evento?", style={'margin-top':'0.5cm'}),
+        dcc.Input(
+                id="pergunta_e",
+                type="text",
+                placeholder="Ex: Jacareí/São Paulo/Brasil",
+                value='',
+                style={'height':'1.1cm'}
+            ),
+        
+        # Pergunta G
+        html.Label("Como poderia ser classificada a vulnerabilidade desta área?", style={'margin-top':'0.5cm'}),
+            html.Center(
+            dcc.Dropdown(
+            id='pergunta_g',
+            options=[
+                {'label': 'Nula', 'value': 'Nula'},
+                {'label': 'Baixa', 'value': 'Baixa'},
+                {'label': 'Intermediaria', 'value': 'Intermediaria'},
+                {'label': 'Alta', 'value': 'Alta'},
+                {'label': 'Devastadora', 'value': 'Devastadora'},
+            ],
+            value=None,
+            placeholder='Selecione uma resposta',
+            style={'width':'5.5cm', 'textAlign': 'left'}
+        )),
+            
+        # Pergunta J
+        html.Label("Existem variáveis medidas antes, durante e após o evento que podem ajudar a descrevê-lo como um fenômeno de causa(s) e efeito(s)?", style={'margin-top':'0.5cm'}),
+        dcc.Input(
+                id="pergunta_j",
+                type="text",
+                placeholder="Ex: Precepitação, vento e ou outras",
+                value='',
+                style={'width':'7cm'}
+            ),
+            
+        # Pergunta I
+        html.Label("Existe algum modo de variabilidade climática atuante no local e data do evento?", style={'margin-top':'0.5cm'}),
+        dcc.Input(
+                id="pergunta_i",
+                type="text",
+                placeholder="Ex: El Niño, El Niña ou outras",
+                value='',
+                style={'width':'7cm', 'textAlign': 'left'}
+            ),
+        
+        # Pergunta K
+        html.Label("É possível quantificar/dimensionar o impacto do evento no meio ambiente?", style={'margin-top':'0.5cm'}),
+        html.Center(
+        dcc.Dropdown(
+            id='pergunta_k',
+            options=[
+                {'label': 'Sim', 'value': 'Sim'},
+                {'label': 'Não', 'value': 'Não'}
+            ],
+            value=None,
+            placeholder='Selecione uma resposta',
+            style={'width':'5.5cm', 'textAlign': 'left'}
+        )),
+        
+        
+        ], style={'verticalAlign': 'top', 'width': '45%', 'display': 'inline-block', 'margin-right':'5%', 'textAlign': 'center'}), #espaco onde sera exibido o retorno,
+        
+        html.Div(
+        id='resposta_quest_dois', 
+        )
 ], style={'verticalAlign': 'top'})
 
 
@@ -551,7 +567,8 @@ quest_dois = html.Div([
 
 
 def survey(n_clicks, resposta_d, resposta_e, resposta_f, resposta_g, resposta_h, resposta_i, resposta_j, resposta_k, resposta_l, resposta_m):
-    '''if n_clicks > 0: 
+    return ""
+    """if n_clicks > 0: 
         if resposta_a == 'Não' and resposta_b == 'Não' and resposta_c == 'Não':
             evento = 'ALAGAMENTO'
             descricao = 'É um acúmulo momentâneo de águas em determinados locais por deficiência no sistema de drenagem.'
@@ -573,14 +590,15 @@ def survey(n_clicks, resposta_d, resposta_e, resposta_f, resposta_g, resposta_h,
         else:
             evento = 'INVÁLIDO'
             descricao = 'Por favor, verifique suas respostas.
-            '''
+            
     if n_clicks > 0:
         return html.Div([
             #html.H3(f"Evento Identificado: {evento}"),
             #html.P(descricao),
             html.P('Fonte: Glossário Transdiciplinar (Projeto COPE - CEMADEN)')
         ], style={'verticalAlign': 'center', 'padding':'20px', 'backgroundColor': '#f0f0f0', 'border-radius': '5px', 'margin-top': '10%'})
-    return ""
+    return ''
+    """
 
 
 app.layout = html.Div([titulo, quest_um, selector, quest_dois])#, analise_chuva, analise_rio])
